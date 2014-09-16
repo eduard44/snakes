@@ -1,0 +1,17 @@
+{
+    "name": "delta6/snakes",
+    "require": {
+        "symfony/console": "2.5.x"
+    },
+    "authors": [
+        {
+            "name": "Eduardo Trujillo",
+            "email": "ed@chromabits.com"
+        }
+    ],
+    "autoload": {
+        "psr-4": {
+            "Chromabits\\": "src/Chromabits"
+        }
+    }
+}

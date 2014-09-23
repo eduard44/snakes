@@ -32,6 +32,18 @@ class SnakesCommand extends Command
                 'p',
                 InputOption::VALUE_NONE,
                 'Print result array with all path edges'
+            )
+            ->addOption(
+                'randomized',
+                'r',
+                InputOption::VALUE_NONE,
+                'Randomize search'
+            )
+            ->addOption(
+                'iterations',
+                'i',
+                InputOption::VALUE_REQUIRED,
+                'Number of iterations'
             );
     }
 
@@ -47,8 +59,18 @@ class SnakesCommand extends Command
         // Create a new search
         $search = new Search($input->getOption('dimension'));
 
+        // Set the search as randomized
+        if ($input->getOption('randomized')) {
+            $search->setRandomized(true);
+        }
+
+        // Set number of iterations
+        if ($input->hasOption('iterations')) {
+            $search->setInterations($input->getOption('iterations'));
+        }
+
         // Execute the search
-        $result = $search->run();
+        $result = $search->run($output);
 
         // Print out output (if specified)
         if ($input->getOption('print')) {

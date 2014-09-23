@@ -44,6 +44,19 @@ class SnakesCommand extends Command
                 'i',
                 InputOption::VALUE_REQUIRED,
                 'Number of iterations'
+            )
+            ->addOption(
+                'learn',
+                'l',
+                InputOption::VALUE_OPTIONAL,
+                'Number of learning iterations',
+                1
+            )
+            ->addOption(
+                'penalize',
+                null,
+                InputOption::VALUE_NONE,
+                'Penalize the learning model if it does not provide better results'
             );
     }
 
@@ -56,6 +69,9 @@ class SnakesCommand extends Command
      */
     public function execute(InputInterface $input, OutputInterface $output)
     {
+        // Allow PHP to use a lot of memory
+        ini_set('memory_limit', '-1');
+
         // Create a new search
         $search = new Search($input->getOption('dimension'));
 
@@ -65,8 +81,17 @@ class SnakesCommand extends Command
         }
 
         // Set number of iterations
-        if ($input->hasOption('iterations')) {
-            $search->setInterations($input->getOption('iterations'));
+        if ($input->getOption('iterations')) {
+            $search->setIterations($input->getOption('iterations'));
+        }
+
+        // Set number of learning iterations
+        if ($input->getOption('learn')) {
+            $search->setLearningIterations($input->getOption('learn'));
+        }
+
+        if ($input->getOption('penalize')) {
+            $search->setPenalize(true);
         }
 
         // Execute the search
@@ -78,6 +103,6 @@ class SnakesCommand extends Command
         }
 
         // Print out the length of the path found
-        $output->writeln('Largest path found was: ' . count($result));
+        $output->writeln("\n" . 'Largest path found was: ' . count($result));
     }
 } 

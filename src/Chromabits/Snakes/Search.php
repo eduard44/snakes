@@ -56,6 +56,11 @@ class Search
     protected $penalize = false;
 
     /**
+     * @var bool
+     */
+    protected $forget = true;
+
+    /**
      * Constructor
      *
      * @param int $dimensions
@@ -96,8 +101,11 @@ class Search
 
         $exploredPaths = array();
 
-        $randomChoice = mt_rand(0, $this->dimensions);
+        $randomChoice = mt_rand(0, $this->dimensions - 1);
         $randomCount = 0;
+        $randomAttempts = 0;
+
+        $unavailable[] = $currentString;
 
         // Use weight information when available
         if (!is_null($wNodes) && $wNodes->hasStatisticsFor($currentString)) {
@@ -113,10 +121,23 @@ class Search
                 }
 
                 $randomCount++;
+
+                if (in_array($neighborString, $unavailable)) {
+                    $randomChoice = mt_rand(0, $this->dimensions - 1);
+                    $randomAttempts++;
+                    $randomCount = 0;
+
+                    // Give up if it is a dead end
+                    if ($randomAttempts > $this->dimensions) {
+                        break;
+                    }
+
+                    continue;
+                }
             }
 
             // Check if neighbor is available
-            if (in_array($neighborString, $unavailable)) {
+            elseif (in_array($neighborString, $unavailable)) {
                 continue;
             }
 
@@ -130,7 +151,7 @@ class Search
             $neighborPath[] = array($currentString, $neighborString);
 
             // Add this node and other neighbors
-            $neighborUnavailable[] = $currentString;
+            $neighborUnavailable[] = $neighbor->getStringIdentifier();
 
             $otherNeighbors = array_diff($neighbors, array($neighborString));
 
@@ -140,6 +161,16 @@ class Search
 
             $exploredPaths[] = $newPath;
         }
+
+        /*echo "\nExplored: " . count($exploredPaths) . "\n";
+
+        echo "Current: " . $currentString . "\n";
+
+        echo "Neighbors: \n";
+        print_r($neighbors);
+
+        echo "Unavailable: \n";
+        print_r($unavailable);*/
 
         // Find largest path explored
         $largestPathLength = 0;
@@ -195,7 +226,9 @@ class Search
             }
 
             // Add to statistics
-            $stats->addIterationResult($result);
+            if ($this->learningIterations > 1) {
+                $stats->addIterationResult($result);
+            }
 
             $progress->advance();
         }
@@ -220,8 +253,10 @@ class Search
             $computedWeights = $stats->computeWeightedNodes($penalty);
             //$penalty = 0;
 
-            unset($stats);
-            $stats = new StatisticsCollection($this->dimensions);
+            if ($this->forget) {
+                unset($stats);
+                $stats = new StatisticsCollection($this->dimensions);
+            }
 
             // Run for requested number of iterations
             for ($i = 0; $i < $this->getIterations(); $i++) {
@@ -246,11 +281,17 @@ class Search
                 $progress->advance();
             }
 
+            //$stats->addIterationResult($lastBestPath);
+
             // Add a penalty if nothing happened
-            if ($lastBestResult == $bestResultCount && $this->penalize) {
-                $penalty += $lastBestResult/$this->getLearningIterations();
-            } else {
-                $penalty = 0;
+            if ($this->penalize) {
+                if ($lastBestPathLength < $bestResultCount) {
+                    $penalty += (1 - $lastBestPathLength/$lastBestResult);
+                } elseif ($lastBestPathLength == $bestResultCount) {
+                    $penalty = 0;
+                } else {
+                    $penalty = -$lastBestResult;
+                }
             }
 
             $progress->finish();
@@ -317,5 +358,13 @@ class Search
     public function setPenalize($penalize)
     {
         $this->penalize = $penalize;
+    }
+
+    /**
+     * @param boolean $forget
+     */
+    public function setForget($forget)
+    {
+        $this->forget = $forget;
     }
 } 

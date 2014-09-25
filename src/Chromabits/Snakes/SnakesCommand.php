@@ -57,6 +57,12 @@ class SnakesCommand extends Command
                 null,
                 InputOption::VALUE_NONE,
                 'Penalize the learning model if it does not provide better results'
+            )
+            ->addOption(
+                'remember',
+                'm',
+                InputOption::VALUE_NONE,
+                'Use same model for all learning steps'
             );
     }
 
@@ -93,6 +99,10 @@ class SnakesCommand extends Command
         if ($input->getOption('penalize')) {
             $search->setPenalize(true);
         }
+
+        if ($input->getOption('remember')) {
+            $search->setForget(false);
+        };
 
         // Execute the search
         $result = $search->run($output);

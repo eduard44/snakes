@@ -63,7 +63,7 @@ class WeightedNode extends Node
         $neighborPercentages = array_merge($this->neighborWeights);
 
         foreach ($neighborPercentages as $key => $percentage) {
-            $neighborPercentages[$key] = ($percentage/(float)$total) * 100.0;
+            $neighborPercentages[$key] = max(($percentage/(float)$total) * 100.0, self::BASE_CHANCE);
         }
 
         return $neighborPercentages;

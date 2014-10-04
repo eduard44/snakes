@@ -88,4 +88,25 @@ class PathNode extends Node
         // If it's cached, avoid computing and just return the cached array
         return $this->cachedUsedNodes;
     }
+
+    /**
+     * Pick a random neighbor (expect the ones specified)
+     *
+     * @param string[] $except
+     * @return string|null
+     */
+    public function getRandomNextNode(array $except)
+    {
+        $remainingOptions = array_diff($this->computeNeighbors(), $except);
+
+        if (empty($remainingOptions)) {
+            return null;
+        }
+
+        $maxIndex = count($remainingOptions) - 1;
+
+        $randomChoiceIndex = mt_rand(0, $maxIndex);
+
+        return $remainingOptions[$randomChoiceIndex];
+    }
 } 

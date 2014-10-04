@@ -23,6 +23,19 @@ class GuidedSnakeGraph
     protected $dimensions = 3;
 
     /**
+     * Initialize the graph
+     *
+     * @param int $dimensions
+     */
+    public function __construct($dimensions = 3)
+    {
+        $this->dimensions = $dimensions;
+    }
+
+    // TODO: Function to get which neighbors the search should explore next
+    // TODO: Function to get a node to start searching at (must support some sort of exclude of explored nodes)
+
+    /**
      * Add a statistic about a path (not necessarily the best)
      *
      * @param PathNode $pathNode

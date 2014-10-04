@@ -22,6 +22,8 @@ class Node
      */
     protected $identifier;
 
+    protected $cachedNeighbors = null;
+
     public function __construct($dimensions = 3, $identifier = null)
     {
         if ($dimensions < 3) {
@@ -102,8 +104,18 @@ class Node
         return true;
     }
 
+    /**
+     * Return array containing the string identifiers of every neighbor of this node
+     *
+     * @return array
+     */
     public function computeNeighbors()
     {
+        // Check if there is a cached version already
+        if (!is_null($this->cachedNeighbors)) {
+            return $this->cachedNeighbors;
+        }
+
         $neighbors = array();
 
         for ($i = 0; $i < $this->dimensions; $i++) {
@@ -117,6 +129,9 @@ class Node
 
             $neighbors[] = implode('', $neighborId->toArray());
          }
+
+        // Keep a cached version
+        $this->cachedNeighbors = $neighbors;
 
         return $neighbors;
     }
@@ -141,6 +156,11 @@ class Node
      * @return int
      */
     public function getDimensions()
+    {
+        return $this->dimensions;
+    }
+
+    public function getNumberOfNeighbors()
     {
         return $this->dimensions;
     }

@@ -2,13 +2,24 @@
 
 namespace Chromabits\Snakes;
 
-
+/**
+ * Class WeightedNode
+ *
+ * @package Chromabits\Snakes
+ */
 class WeightedNode extends Node
 {
     const BASE_CHANCE = 0.06;
 
     protected $neighborWeights;
 
+    /**
+     * Constructor
+     *
+     * @param int $dimensions
+     * @param string $identifier
+     * @throws \Exception
+     */
     public function __construct($dimensions = 3, $identifier = null)
     {
         parent::__construct($dimensions, $identifier);
@@ -16,7 +27,10 @@ class WeightedNode extends Node
         $this->neighborWeights = array();
     }
 
-
+    /**
+     * @param $neighbor
+     * @param $weight
+     */
     public function addWeightStatistic($neighbor, $weight)
     {
         if (empty($this->neighborWeights)) {
@@ -55,6 +69,9 @@ class WeightedNode extends Node
         return $result;
     }
 
+    /**
+     * @return array
+     */
     public function getNeighborPercentages()
     {
         $total = $this->getTotalNeighborWeight();
@@ -69,6 +86,9 @@ class WeightedNode extends Node
         return $neighborPercentages;
     }
 
+    /**
+     * @return int|string
+     */
     public function getBiasedNeighborChoice()
     {
         if (count($this->neighborWeights) == 1) {
@@ -80,6 +100,10 @@ class WeightedNode extends Node
         return $this->getRandomWeightedElement($percentages);
     }
 
+    /**
+     * @param array $weightedValues
+     * @return int|string
+     */
     private function getRandomWeightedElement(array $weightedValues) {
         $rand = mt_rand(1, (int) array_sum($weightedValues));
 

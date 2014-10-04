@@ -12,6 +12,11 @@ class StatisticsCollection {
     protected $largestPathLength;
     protected $dimensions;
 
+    /**
+     * Constructor
+     *
+     * @param $dimensions
+     */
     function __construct($dimensions)
     {
         $this->iterationResults = array();

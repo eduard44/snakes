@@ -24,7 +24,7 @@ class PathNode extends Node
 
         // Update the used node cache array
         $stringIdentifier = $this->getStringIdentifier();
-        $this->cachedUsedNodes = array_merge($this->parentNode->getUsedNodes(), [$stringIdentifier]);
+        $this->cachedUsedNodes = array_merge($this->parentNode->getUsedNodes($this), [$stringIdentifier]);
     }
 
     public function getParentNode()
@@ -71,22 +71,26 @@ class PathNode extends Node
      *
      * @return array|null
      */
-    public function getUsedNodes()
+    public function getUsedNodes(PathNode $to = null)
     {
         $stringIdentifier = $this->getStringIdentifier();
 
+        $thisArray = [$stringIdentifier];
+
         // If we have no parent, this is the only used node
         if (is_null($this->parentNode)) {
-            return [$stringIdentifier];
+            if (!is_null($to)) {
+                return array_unique(array_merge($thisArray, array_diff($this->computeNeighbors(), [$to->getStringIdentifier()])));
+            }
+
+            return $thisArray;
         }
 
-        // If we have a parent but no cache, compute and cache
-        if (!empty($this->cachedUsedNodes)) {
-            $this->cachedUsedNodes = array_merge($this->parentNode->getUsedNodes(), [$stringIdentifier]);
+        if (is_null($to)) {
+            return array_unique(array_merge($this->parentNode->getUsedNodes($this), [$stringIdentifier]));
         }
 
-        // If it's cached, avoid computing and just return the cached array
-        return $this->cachedUsedNodes;
+        return array_unique(array_merge($this->parentNode->getUsedNodes($this), array_diff($this->computeNeighbors(), [$to->getStringIdentifier()]), [$stringIdentifier]));
     }
 
     /**
@@ -95,9 +99,11 @@ class PathNode extends Node
      * @param string[] $except
      * @return string|null
      */
-    public function getRandomNextNode(array $except)
+    public function getRandomNextNode(array $except = [])
     {
-        $remainingOptions = array_diff($this->computeNeighbors(), $except);
+        $remainingOptions = array_values(array_diff($this->computeNeighbors(), $except));
+
+        $remainingOptions = array_values(array_diff($remainingOptions, $this->getUsedNodes()));
 
         if (empty($remainingOptions)) {
             return null;
@@ -108,5 +114,14 @@ class PathNode extends Node
         $randomChoiceIndex = mt_rand(0, $maxIndex);
 
         return $remainingOptions[$randomChoiceIndex];
+    }
+
+    public function toString()
+    {
+        if (is_null($this->parentNode)) {
+            return $this->getStringIdentifier();
+        }
+
+        return $this->parentNode->toString() . ' --> ' . $this->getStringIdentifier();
     }
 } 

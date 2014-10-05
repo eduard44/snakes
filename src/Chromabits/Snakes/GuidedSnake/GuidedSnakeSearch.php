@@ -31,11 +31,21 @@ class GuidedSnakeSearch
 
     public function run($iterations = 1)
     {
+
         $initialNode = new PathNode($this->dimensions);
+
+        $this->nodeGraph->addPathLengthStatistic($initialNode, true);
 
         $this->step($initialNode);
 
-        print_r($this->nodeGraph);
+        for ($i = 0; $i < 10000; $i++) {
+            $nextNode = $this->nodeGraph->getNextExplorableNode();
+
+            //var_dump($nextNode->toString());
+            echo "Best so far: " . $this->nodeGraph->getBestPathLength() . "\n";
+
+            $this->step($nextNode);
+        }
     }
 
     public function step(PathNode $previousNode, $exploredPaths = array())

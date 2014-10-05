@@ -32,6 +32,41 @@ class GuidedSnakeGraph
         $this->dimensions = $dimensions;
     }
 
+    /**
+     * @return null|PathNode
+     * @throws Exception
+     */
+    public function getNextExplorableNode()
+    {
+        if (count($this->graphNodes) < 1) {
+            throw new Exception('No nodes defined');
+        }
+
+        $explorableNodes = array_filter($this->graphNodes, function (GuidedSnakeNode $graphNode) {
+            return !$graphNode->isFullyExploredOnAll();
+        });
+
+        usort(
+            $explorableNodes,
+            function (GuidedSnakeNode $graphNodeA, GuidedSnakeNode $graphNodeB) {
+                $nodeA = $graphNodeA->getBestPathLength();
+                $nodeB = $graphNodeB->getBestPathLength();
+
+                if ($nodeA > $nodeB) {
+                    return -1;
+                } elseif ($nodeA < $nodeB) {
+                    return 1;
+                }
+
+                return 0;
+            }
+        );
+
+        $randomIndex = mt_rand(0, count($explorableNodes) - 1);
+
+        return $explorableNodes[$randomIndex]->getBestPathTail();
+    }
+
     // TODO: Function to get which neighbors the search should explore next
     // TODO: Function to get a node to start searching at (must support some sort of exclude of explored nodes)
 
@@ -39,11 +74,12 @@ class GuidedSnakeGraph
      * Add a statistic about a path (not necessarily the best)
      *
      * @param PathNode $pathNode
+     * @param bool $initial
      * @throws Exception
      */
-    public function addPathLengthStatistic(PathNode $pathNode)
+    public function addPathLengthStatistic(PathNode $pathNode, $initial = false)
     {
-        $graphNode = $this->findOrCreate($pathNode->getStringIdentifier());
+        $graphNode = $this->findOrCreate($pathNode->getStringIdentifier(), $initial);
 
         $graphNode->setPath($pathNode);
 
@@ -79,14 +115,23 @@ class GuidedSnakeGraph
      * @param $nodeStringIdentifier
      * @return GuidedSnakeNode
      */
-    protected function findOrCreate($nodeStringIdentifier)
+    protected function findOrCreate($nodeStringIdentifier, $initial)
     {
         // If the node is not in the array, initialize it
         if (!array_key_exists($nodeStringIdentifier, $this->graphNodes)) {
             $this->graphNodes[$nodeStringIdentifier] = new GuidedSnakeNode($this->dimensions, $nodeStringIdentifier);
+
+            if ($initial) {
+                $this->graphNodes[$nodeStringIdentifier]->setInitial(true);
+            }
         }
 
         return $this->graphNodes[$nodeStringIdentifier];
+    }
+
+    public function getBestPathLength()
+    {
+        return $this->bestPathLength;
     }
 
     /**

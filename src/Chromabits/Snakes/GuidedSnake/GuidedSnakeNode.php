@@ -26,6 +26,49 @@ class GuidedSnakeNode extends Node
 
     protected $bestPathLengths = [];
 
+    protected $bestPathLength = 0;
+
+    protected $deadEnd = false;
+
+    protected $initial = false;
+
+    /**
+     * @param boolean $initial
+     */
+    public function setInitial($initial)
+    {
+        $this->initial = $initial;
+    }
+
+    /**
+     * Get the best unexplored path or null if none found
+     *
+     * @return PathNode|null
+     */
+    public function getBestUnexploredPathTail()
+    {
+        if (count($this->bestPaths) < 1) {
+            return null;
+        }
+
+        $bestUnexploredPath = null;
+        $bestLength = 0;
+        foreach ($this->bestPathLengths as $pathIndex => $pathLength) {
+            /** @var PathNode $currentPath */
+            $currentPath = $this->bestPaths[$pathIndex];
+
+            if ($pathLength > $bestLength && !$this->isFullyExplored($currentPath->getParentNode())) {
+                $bestUnexploredPath = $currentPath;
+            }
+        }
+
+        if (is_null($bestUnexploredPath)) {
+            return null;
+        }
+
+        return $bestUnexploredPath;
+    }
+
     /**
      * Add a reference to a neighbor
      *
@@ -79,6 +122,11 @@ class GuidedSnakeNode extends Node
 
             $this->bestPaths[$comingFromStringIdentifier] = $pathTail;
         }
+
+        // Keep a statistic of the best path overall
+        if ($pathLength > $this->bestPathLength) {
+            $this->bestPathLength = $pathLength;
+        }
     }
 
     /**
@@ -95,7 +143,8 @@ class GuidedSnakeNode extends Node
         }
 
         // If we have already calculated that it is fully explored, then avoid calculating all that again
-        if ($this->cachedIsFullyExplored[$comingFromStringIdentifier]) {
+        if (array_key_exists($comingFromStringIdentifier, $this->cachedIsFullyExplored)
+            && $this->cachedIsFullyExplored[$comingFromStringIdentifier]) {
             return true;
         }
 
@@ -137,15 +186,44 @@ class GuidedSnakeNode extends Node
     }
 
     /**
+     * Get whether or not all paths are explored
+     *
+     * @return bool
+     */
+    public function isFullyExploredOnAll()
+    {
+        $neighbors = $this->computeNeighbors();
+
+        foreach ($neighbors as $neighborIdentifier) {
+            if (!$this->isFullyExplored($neighborIdentifier)) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /**
      * Get the best path node or just null
      *
+     * @throws Exception
      * @return null|PathNode
      */
     public function getBestPathTail()
     {
-        // If we don't have any data, just return null
+        // If we don't have any data, just return any
         if (empty($this->bestPathLengths)) {
-            return null;
+            if ($this->initial) {
+                $newNode = new PathNode($this->dimensions, $this->getStringIdentifier());
+
+                $randomNode = new PathNode($this->dimensions, $newNode->getRandomNextNode());
+
+                $randomNode->setParentNode($newNode);
+
+                return $randomNode;
+            } else {
+                throw new Exception('This should not happen');
+            }
         }
 
         $bestSoFar = 0;
@@ -159,5 +237,10 @@ class GuidedSnakeNode extends Node
         }
 
         return $this->bestPaths[$bestPathIndex];
+    }
+
+    public function getBestPathLength()
+    {
+        return $this->bestPathLength;
     }
 } 

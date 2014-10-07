@@ -22,6 +22,8 @@ class GuidedSnakeGraph
 
     protected $dimensions = 3;
 
+    protected $weightedNextNode = false;
+
     /**
      * Initialize the graph
      *
@@ -61,6 +63,21 @@ class GuidedSnakeGraph
                 return 0;
             }
         );
+
+        // OPTIONAL: Use a weighted approach
+        if ($this->weightedNextNode) {
+            $weightedIndexes = [];
+
+            /** @var GuidedSnakeNode $explorableNode */
+            foreach ($explorableNodes as $key => $explorableNode) {
+                $weightedIndexes[$key] =
+                    (($explorableNode->getBestPathLength() / $this->bestPathLength) * 0.8) + 0.2;
+            }
+
+            $weightedIndex = $this->getRandomWeightedElement($weightedIndexes);
+
+            return $explorableNodes[$weightedIndex]->getBestPathTail();
+        }
 
         $randomIndex = mt_rand(0, count($explorableNodes) - 1);
 
@@ -161,5 +178,23 @@ class GuidedSnakeGraph
                 $neighborNode->addNeighborReference($graphNode);
             }
         }
+    }
+
+    /**
+     * @param array $weightedValues
+     * @throws Exception
+     * @return int|string
+     */
+    protected function getRandomWeightedElement(array $weightedValues) {
+        $rand = mt_rand(1, (int) array_sum($weightedValues));
+
+        foreach ($weightedValues as $key => $value) {
+            $rand -= $value;
+            if ($rand <= 0) {
+                return $key;
+            }
+        }
+
+        throw new Exception('This should not happen');
     }
 } 

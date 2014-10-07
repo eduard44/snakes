@@ -113,5 +113,7 @@ class WeightedNode extends Node
                 return $key;
             }
         }
+
+        return null;
     }
 } 

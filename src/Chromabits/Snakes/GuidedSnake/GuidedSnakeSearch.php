@@ -31,14 +31,13 @@ class GuidedSnakeSearch
 
     public function run($iterations = 1)
     {
-
         $initialNode = new PathNode($this->dimensions);
 
         $this->nodeGraph->addPathLengthStatistic($initialNode, true);
 
         $this->step($initialNode);
 
-        for ($i = 0; $i < 10000; $i++) {
+        for ($i = 0; $i < $iterations; $i++) {
             $nextNode = $this->nodeGraph->getNextExplorableNode();
 
             //var_dump($nextNode->toString());

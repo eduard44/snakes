@@ -23,3 +23,7 @@ Show path for hypercube (4 dimensions):
 Show approximate longest path for dimension 7 (using 10000000 iterations):
 
 `php run.php snakes -d 7 -r -i 10000000 -vv`
+
+## New heuristic (Guided search):
+
+`php run.php snakes:guided -d 7 -i 100000`

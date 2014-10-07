@@ -29,6 +29,12 @@ class SnakesGuidedCommand extends Command
                 3
             )
             ->addOption(
+                'iterations',
+                'i',
+                InputOption::VALUE_REQUIRED,
+                'Number of iterations'
+            )
+            ->addOption(
                 'print',
                 'p',
                 InputOption::VALUE_NONE,
@@ -52,14 +58,11 @@ class SnakesGuidedCommand extends Command
         $search = new GuidedSnakeSearch($input->getOption('dimension'));
 
         // Execute the search
-        $search->run();
+        $search->run($input->getOption('iterations'));
 
         // Print out output (if specified)
         //if ($input->getOption('print')) {
         //    $output->write(print_r($result, true));
         //}
-
-        // Print out the length of the path found
-        //$output->writeln("\n" . 'Largest path found was: ' . count($result));
     }
 } 
